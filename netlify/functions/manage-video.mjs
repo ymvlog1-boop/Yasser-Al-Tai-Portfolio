@@ -12,11 +12,11 @@ export default async req=>{
  if(req.method!=='POST')return new Response('Method not allowed',{status:405});
  const token=await verify(req);if(!token)return new Response('Please log in',{status:401});
  const body=await req.json().catch(()=>null);
- const target=body?.target;const action=body?.action;const category=body?.category;const allowed=['أعراس','حنّات','خطوبة','دبكات','مناسبات','ستوريات','إسلاميات'];if(!['move','delete'].includes(action)||(action==='move'&&!allowed.includes(category)))return new Response('Invalid action',{status:400});
+ const target=body?.target;const action=body?.action;const category=body?.category;if(!['move','delete'].includes(action))return new Response('Invalid action',{status:400});
  if(!target||typeof target.url!=='string'||typeof target.title!=='string'||typeof target.category!=='string')return new Response('Invalid video',{status:400});
- const api='https://api.github.com/repos/ymvlog1-boop/Yasser-Al-Tai-Portfolio/contents/videos.json';
+ const base='https://api.github.com/repos/ymvlog1-boop/Yasser-Al-Tai-Portfolio/contents/';const api=base+'videos.json';
  const headers={Authorization:'Bearer '+token,Accept:'application/vnd.github+json','User-Agent':'Yasser-Portfolio'};
- const old=await fetch(api,{headers,cache:'no-store'});if(!old.ok)return new Response('Cannot read videos',{status:502});
+ if(action==='move'){const cats=await fetch(base+'categories.json',{headers,cache:'no-store'});if(!cats.ok)return new Response('Cannot read categories',{status:502});const catFile=await cats.json();const allowed=JSON.parse(Buffer.from(catFile.content.replace(/\s/g,''),'base64').toString('utf8'));if(!allowed.includes(category))return new Response('Invalid category',{status:400})}const old=await fetch(api,{headers,cache:'no-store'});if(!old.ok)return new Response('Cannot read videos',{status:502});
  const file=await old.json();const existing=JSON.parse(Buffer.from(file.content.replace(/\s/g,''),'base64').toString('utf8'));
  if(!Array.isArray(existing))return new Response('Invalid existing data',{status:500});
  const matches=existing.filter(v=>v.url===target.url&&v.title===target.title&&v.category===target.category);
