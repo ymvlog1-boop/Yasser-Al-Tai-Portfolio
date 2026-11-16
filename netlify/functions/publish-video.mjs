@@ -10,7 +10,7 @@ export default async req=>{
  if(req.method!=='POST')return new Response('Method not allowed',{status:405});
  const token=await verify(req);if(!token)return new Response('Please log in',{status:401});
  const body=await req.json().catch(()=>null),item=body?.item;
- if(!item||typeof item.title!=='string'||item.title.length>180||!['أعراس','حنّات','خطوبة','دبكات','مناسبات','ستوريات'].includes(item.category))return new Response('Invalid item',{status:400});
+ if(!item||typeof item.title!=='string'||item.title.length>180||!['أعراس','حنّات','خطوبة','دبكات','مناسبات','ستوريات','إسلاميات'].includes(item.category))return new Response('Invalid item',{status:400});
  let video;try{video=new URL(item.url)}catch{return new Response('Invalid URL',{status:400})}
  if(video.protocol!=='https:'||!['youtube.com','www.youtube.com','youtu.be','m.youtube.com','facebook.com','www.facebook.com','m.facebook.com','fb.watch','www.fb.watch'].includes(video.hostname))return new Response('Invalid video host',{status:400});
  if(item.thumbnail){let thumb;try{thumb=new URL(item.thumbnail)}catch{return new Response('Invalid thumbnail',{status:400})}if(thumb.protocol!=='https:')return new Response('Invalid thumbnail',{status:400})}
