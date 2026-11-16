@@ -10,13 +10,13 @@ export default async req=>{
  if(req.method!=='POST')return new Response('Method not allowed',{status:405});
  const token=await verify(req);if(!token)return new Response('Please log in',{status:401});
  const body=await req.json().catch(()=>null),item=body?.item;
- if(!item||typeof item.title!=='string'||item.title.length>180||!['أعراس','حنّات','خطوبة','دبكات','مناسبات','ستوريات','إسلاميات'].includes(item.category))return new Response('Invalid item',{status:400});
+ if(!item||typeof item.title!=='string'||item.title.length>180)return new Response('Invalid item',{status:400});
  let video;try{video=new URL(item.url)}catch{return new Response('Invalid URL',{status:400})}
  if(video.protocol!=='https:'||!['youtube.com','www.youtube.com','youtu.be','m.youtube.com','facebook.com','www.facebook.com','m.facebook.com','fb.watch','www.fb.watch'].includes(video.hostname))return new Response('Invalid video host',{status:400});
  if(item.thumbnail){let thumb;try{thumb=new URL(item.thumbnail)}catch{return new Response('Invalid thumbnail',{status:400})}if(thumb.protocol!=='https:')return new Response('Invalid thumbnail',{status:400})}
  const api='https://api.github.com/repos/ymvlog1-boop/Yasser-Al-Tai-Portfolio/contents/videos.json';
  const headers={Authorization:'Bearer '+token,Accept:'application/vnd.github+json','User-Agent':'Yasser-Portfolio'};
- const old=await fetch(api,{headers,cache:'no-store'});if(!old.ok)return new Response('Cannot read videos',{status:502});
+ const cats=await fetch('https://api.github.com/repos/ymvlog1-boop/Yasser-Al-Tai-Portfolio/contents/categories.json',{headers,cache:'no-store'});if(!cats.ok)return new Response('Cannot read categories',{status:502});const catFile=await cats.json();const allowed=JSON.parse(Buffer.from(catFile.content.replace(/\s/g,''),'base64').toString('utf8'));if(!allowed.includes(item.category))return new Response('Invalid category',{status:400});const old=await fetch(api,{headers,cache:'no-store'});if(!old.ok)return new Response('Cannot read videos',{status:502});
  const file=await old.json();const existing=JSON.parse(Buffer.from(file.content.replace(/\s/g,''),'base64').toString('utf8'));
  if(!Array.isArray(existing))return new Response('Invalid existing data',{status:500});
  const clean={title:item.title.trim(),category:item.category,url:video.href,description:String(item.description||'').slice(0,500),...(item.thumbnail?{thumbnail:item.thumbnail}:{})};
